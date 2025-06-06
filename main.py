@@ -2,7 +2,7 @@ import telebot
 import requests
 
 TOKEN = '7174618825:AAH4yLxwA461rKfCUPc3ldCgj36-mRpCcJ4'
-YANDEX_API_KEY = '395d583f-a699-4374-90f5-d7bc56fa299c'
+YANDEX_API_KEY = '2fa876c9-2dd8-42e3-bac4-56e5f6741618'
 
 bot = telebot.TeleBot(TOKEN)
 
