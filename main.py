@@ -1,56 +1,60 @@
 import telebot
 import requests
 
-# 🔐 Вставь свой токен Telegram
-TELEGRAM_TOKEN = "7174618825:AAH4yLxwA461rKfCUPc3ldCgj36-mRpCcJ4"
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
+# Замените на свой токен и API ключ
+TOKEN = 'ВАШ_ТЕЛЕГРАМ_ТОКЕН'
+YANDEX_API_KEY = 'ВАШ_YANDEX_API_KEY'
 
-# 🔑 Вставь сюда API-ключ от Яндекс Карт (Places API)
-YANDEX_API_KEY = "395d583f-a699-4374-90f5-d7bc56fa299c"
+bot = telebot.TeleBot(TOKEN)
 
-# 📡 Удаление Webhook (иначе будет ошибка 409)
-requests.get(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/deleteWebhook")
-
-
-@bot.message_handler(content_types=['text'])
-def handle_text(message):
-    bot.send_message(message.chat.id, "Отправь мне свою геопозицию, и я подскажу интересные места рядом.")
-
+@bot.message_handler(commands=['start'])
+def start_message(message):
+    bot.send_message(message.chat.id, "Привет! Отправь мне свою геопозицию, и я подберу места рядом.")
 
 @bot.message_handler(content_types=['location'])
 def handle_location(message):
     latitude = message.location.latitude
     longitude = message.location.longitude
 
-    headers = {
-        "Authorization": f"Api-Key {YANDEX_API_KEY}"
+    url = 'https://search-maps.yandex.ru/v1/'
+    params = {
+        'apikey': YANDEX_API_KEY,
+        'text': 'еда',  # можно менять под настроение
+        'lang': 'ru_RU',
+        'll': f'{longitude},{latitude}',
+        'type': 'biz',
+        'results': 5
     }
 
-    categories = ["cafe", "park", "museum"]  # типы заведений
-    results = []
+    try:
+        response = requests.get(url, params=params)
+        print("STATUS:", response.status_code)
+        print("RESPONSE TEXT:", response.text)
 
-    for category in categories:
-        url = (
-            f"https://search-maps.yandex.ru/v1/?text={category}&"
-            f"ll={longitude},{latitude}&"
-            f"spn=0.01,0.01&"
-            f"results=3&type=biz&lang=ru_RU"
-        )
-        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            bot.send_message(message.chat.id, f"Ошибка: статус {response.status_code}")
+            return
 
-        try:
-            places = response.json().get("features", [])
-            for place in places:
-                name = place["properties"]["CompanyMetaData"]["name"]
-                address = place["properties"]["CompanyMetaData"].get("address", "Адрес не указан")
-                results.append(f"📍 {name}\n📫 {address}")
-        except Exception as e:
-            results.append(f"Ошибка при получении данных: {str(e)}")
+        data = response.json()
+        features = data.get('features', [])
 
-    reply = "\n\n".join(results) if results else "Ничего не найдено рядом."
-    bot.send_message(message.chat.id, reply)
+        if not features:
+            bot.send_message(message.chat.id, "Ничего не нашлось рядом 😢")
+            return
 
+        for feature in features:
+            name = feature['properties']['CompanyMetaData']['name']
+            address = feature['properties']['CompanyMetaData']['address']
+            bot.send_message(message.chat.id, f"{name}\n{address}")
 
-if __name__ == "__main__":
-    print("Бот запущен...")
+    except Exception as e:
+        bot.send_message(message.chat.id, f"Ошибка при получении данных: {e}")
+        print("ОШИБКА:", e)
+
+# Запуск polling без конфликтов
+if __name__ == '__main__':
+    try:
+        bot.delete_webhook()
+    except:
+        pass
     bot.polling(none_stop=True)
