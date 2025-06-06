@@ -1,6 +1,6 @@
 import telebot
 
-TOKEN = 7174618825:AAH4yLxwA461rKfCUPc3ldCgj36-mRpCcJ4
+TOKEN = '7174618825:AAH4yLxwA461rKfCUPc3ldCgj36-mRpCcJ4'
 bot = telebot.TeleBot(TOKEN)
 
 # Очистка webhook перед запуском polling
