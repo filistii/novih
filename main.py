@@ -1,12 +1,10 @@
 import telebot
 import requests
 
-# Вставь сюда токен своего бота
 TOKEN = '7174618825:AAH4yLxwA461rKfCUPc3ldCgj36-mRpCcJ4'
-bot = telebot.TeleBot(TOKEN)
-
-# Вставь сюда API ключ от Yandex Places
 YANDEX_API_KEY = '395d583f-a699-4374-90f5-d7bc56fa299c'
+
+bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -20,7 +18,7 @@ def handle_location(message):
     url = "https://search-maps.yandex.ru/v1/"
     params = {
         'apikey': YANDEX_API_KEY,
-        'text': 'кафе',  # можешь заменить на 'парк', 'музей', 'бар' и т.д.
+        'text': 'кафе',
         'lang': 'ru_RU',
         'll': f"{longitude},{latitude}",
         'type': 'biz',
