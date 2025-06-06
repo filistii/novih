@@ -2,8 +2,8 @@ import telebot
 import requests
 
 # Замените на свой токен и API ключ
-TOKEN = 'ВАШ_ТЕЛЕГРАМ_ТОКЕН'
-YANDEX_API_KEY = 'ВАШ_YANDEX_API_KEY'
+TOKEN = '7174618825:AAH4yLxwA461rKfCUPc3ldCgj36-mRpCcJ4'
+YANDEX_API_KEY = '395d583f-a699-4374-90f5-d7bc56fa299c'
 
 bot = telebot.TeleBot(TOKEN)
 
