@@ -1,7 +1,7 @@
 import telebot
 import os
 
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("TOKEN")  # Убедись, что токен в переменных окружения
 bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(content_types=['text'])
@@ -14,4 +14,6 @@ def handle_location(message):
     longitude = message.location.longitude
     bot.send_message(message.chat.id, f"Ты находишься здесь: {latitude}, {longitude} 🌍")
 
-bot.polling()
+if __name__ == '__main__':
+    bot.remove_webhook()  # Удаляем webhook, чтобы избежать конфликта
+    bot.polling()
