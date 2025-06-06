@@ -1,19 +1,29 @@
 import telebot
-import os
 
-TOKEN = os.getenv("TOKEN")  # Убедись, что токен в переменных окружения
+TOKEN = 'твой_токен_сюда'
 bot = telebot.TeleBot(TOKEN)
 
-@bot.message_handler(content_types=['text'])
-def handle_text(message):
-    bot.send_message(message.chat.id, "Привет! Отправь свою геолокацию, и я подскажу интересные места рядом.")
+# Очистка webhook перед запуском polling
+bot.remove_webhook()
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Привет! Отправь свои координаты, и я подберу места рядом.")
 
 @bot.message_handler(content_types=['location'])
 def handle_location(message):
     latitude = message.location.latitude
     longitude = message.location.longitude
-    bot.send_message(message.chat.id, f"Ты находишься здесь: {latitude}, {longitude} 🌍")
+    # Здесь твоя логика подбора мест (заглушка)
+    reply = f"Получены координаты: {latitude}, {longitude}. Скоро подберу места!"
+    bot.send_message(message.chat.id, reply)
+
+@bot.message_handler(func=lambda m: True)
+def ask_for_location(message):
+    markup = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
+    button = telebot.types.KeyboardButton(text="Отправить местоположение", request_location=True)
+    markup.add(button)
+    bot.send_message(message.chat.id, "Пожалуйста, отправь свои координаты", reply_markup=markup)
 
 if __name__ == '__main__':
-    bot.remove_webhook()  # Удаляем webhook, чтобы избежать конфликта
-    bot.polling()
+    bot.polling(none_stop=True)
