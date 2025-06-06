@@ -1,29 +1,45 @@
 import telebot
+import requests
 
+# Вставь сюда токен своего бота
 TOKEN = '7174618825:AAH4yLxwA461rKfCUPc3ldCgj36-mRpCcJ4'
 bot = telebot.TeleBot(TOKEN)
 
-# Очистка webhook перед запуском polling
-bot.remove_webhook()
+# Вставь сюда API ключ от Yandex Places
+YANDEX_API_KEY = '395d583f-a699-4374-90f5-d7bc56fa299c'
 
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Привет! Отправь свои координаты, и я подберу места рядом.")
+def start(message):
+    bot.send_message(message.chat.id, "Привет! Отправь мне свою геопозицию, и я подскажу интересные места рядом 🌍")
 
 @bot.message_handler(content_types=['location'])
 def handle_location(message):
     latitude = message.location.latitude
     longitude = message.location.longitude
-    # Здесь твоя логика подбора мест (заглушка)
-    reply = f"Получены координаты: {latitude}, {longitude}. Скоро подберу места!"
+
+    url = "https://search-maps.yandex.ru/v1/"
+    params = {
+        'apikey': YANDEX_API_KEY,
+        'text': 'кафе',  # можешь заменить на 'парк', 'музей', 'бар' и т.д.
+        'lang': 'ru_RU',
+        'll': f"{longitude},{latitude}",
+        'type': 'biz',
+        'results': 3,
+        'spn': '0.01,0.01'
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if 'features' in data and data['features']:
+        reply = "📍 Вот что нашлось рядом:\n\n"
+        for place in data['features']:
+            name = place['properties']['name']
+            address = place['properties']['CompanyMetaData']['address']
+            reply += f"🍽 {name}\n📍 {address}\n\n"
+    else:
+        reply = "Ничего не нашёл поблизости. Попробуй другое место."
+
     bot.send_message(message.chat.id, reply)
 
-@bot.message_handler(func=lambda m: True)
-def ask_for_location(message):
-    markup = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True)
-    button = telebot.types.KeyboardButton(text="Отправить местоположение", request_location=True)
-    markup.add(button)
-    bot.send_message(message.chat.id, "Пожалуйста, отправь свои координаты", reply_markup=markup)
-
-if __name__ == '__main__':
-    bot.polling(none_stop=True)
+bot.polling()
